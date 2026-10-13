@@ -34,10 +34,12 @@ jobs:
       - name: Build debug APK
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          gradle assembleDebug --console=plain > build.log 2>&1 || {
-            grep -E "^e: |What went wrong|Caused by" -A5 build.log | head -40
-            exit 1
-          }
+          gradle assembleDebug --console=plain > build.log 2>&1 && exit 0
+          grep "^e: " build.log | sed 's#.*/com/hanif/translator/##' | sort -u > errors.txt || true
+          while read -r line; do echo "::error::$line"; done < errors.txt
+          echo "=== DAFTAR ERROR ==="
+          cat errors.txt
+          exit 1
 
       - uses: actions/upload-artifact@v4
         with:
