@@ -31,6 +31,17 @@ jobs:
           unzip -q ./*.zip -d extracted
           echo "PROJECT_DIR=$(dirname "$(find extracted -name settings.gradle.kts | head -n 1)")" >> $GITHUB_ENV
 
+      - name: Patch code
+        run: |
+          python3 - <<'PY'
+          import glob
+          f = glob.glob('extracted/**/OverlayService.kt', recursive=True)[0]
+          s = open(f).read()
+          if 'if (p == null)' not in s:
+              s = s.replace('        proj = p\n', '        if (p == null) { stopSelf(); return START_NOT_STICKY }\n        proj = p\n', 1)
+              open(f, 'w').write(s)
+          PY
+
       - name: Build debug APK
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
