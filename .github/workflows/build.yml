@@ -33,7 +33,11 @@ jobs:
 
       - name: Build debug APK
         working-directory: ${{ env.PROJECT_DIR }}
-        run: gradle assembleDebug --stacktrace
+        run: |
+          gradle assembleDebug --console=plain > build.log 2>&1 || {
+            grep -E "^e: |What went wrong|Caused by" -A5 build.log | head -40
+            exit 1
+          }
 
       - uses: actions/upload-artifact@v4
         with:
